@@ -76,9 +76,13 @@ WSGI_APPLICATION = 'tutorial.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "django",
+        "USER": "postgres",
+        "PASSWORD": "123",
+        "HOST": "localhost",
+        "PORT": "",
     }
 }
 
@@ -129,4 +133,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10
+}
+
+SWAGGER_SETTINGS = {
+    'VALIDATOR_URL': 'http://localhost:8189',
 }
