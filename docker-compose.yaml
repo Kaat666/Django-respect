@@ -3,26 +3,23 @@ version: "3.11"
 services:
   db:
     image: postgres:15
-    container_name: django_postgres
+    container_name: db
     restart: always
+    ports:
+      - 5432:5432
     volumes:
       - ./data/db:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_NAME=django
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=123
+    env_file:
+      - .env
   backend:
     container_name: django_backend
     build: .
-    command: bash -c 'python /Django-respect/manage.py migrate && python /Django-respect/manage.py runserver 0.0.0.0:8000'
+    command: bash -c 'python manage.py migrate && python manage.py runserver 0.0.0.0:8000'
     volumes:
-      - .:/usr/src/Django-respect
+      - .:/usr/src/Django-master
     ports:
       - 8000:8000
-    environment:
-      - POSTGRES_NAME=django
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=123
+    env_file:
+      - .env
     depends_on:
       - db
