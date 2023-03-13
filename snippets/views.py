@@ -72,8 +72,8 @@ class ProductDetail(APIView):
             )
         ],
     )
-    def get(self, request, format=None):
-        products = Product.objects.all()
+    def get(self, request, pk, format=None):
+        products = Product.objects.filter(pk=pk).first()
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
 
@@ -141,7 +141,7 @@ class CartList(APIView):
 class CartDetail(APIView):
 
     @swagger_auto_schema(
-        operation_summary="Получение информации о конкретном товаре",
+        operation_summary="Получение информации о конкретном товаре в корзине",
         responses={200: CartSerializer(many=True), 500: "Серверная ошибка"},
         manual_parameters=[
             openapi.Parameter(
@@ -152,8 +152,8 @@ class CartDetail(APIView):
             )
         ],
     )
-    def get(self, request, format=None):
-        carts = Cart.objects.all()
+    def get(self, request, pk, format=None):
+        carts = Cart.objects.filter(pk=pk).first()
         serializer = CartSerializer(carts, many=True)
         return Response(serializer.data)
 
