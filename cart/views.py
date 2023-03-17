@@ -1,6 +1,7 @@
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from cart.models import Cart
 from cart.serializers import CartSerializer
@@ -8,6 +9,8 @@ from rest_framework.views import APIView
 
 
 class CartList(APIView):
+    permission_classes = (IsAuthenticated,)
+
     @swagger_auto_schema(
         operation_summary="Добавление продукта в корзину",
         responses={
@@ -15,14 +18,7 @@ class CartList(APIView):
             400: "Не правильный ввод данных",
             500: "Серверная ошибка",
         },
-        manual_parameters=[
-            openapi.Parameter(
-                name="name",
-                in_=openapi.IN_QUERY,
-                required=True,
-                type=openapi.TYPE_STRING,
-            )
-        ],
+        request_body=CartSerializer
     )
     def post(self, request, format=None):
         serializer = CartSerializer(data=request.data)
@@ -34,14 +30,6 @@ class CartList(APIView):
     @swagger_auto_schema(
         operation_summary="Получение списка всех товаров в корзине",
         responses={200: CartSerializer(many=True), 500: "Серверная ошибка"},
-        manual_parameters=[
-            openapi.Parameter(
-                name="name",
-                in_=openapi.IN_QUERY,
-                required=True,
-                type=openapi.TYPE_STRING,
-            )
-        ],
     )
     def get(self, request, format=None):
         carts = Cart.objects.all()
@@ -51,14 +39,6 @@ class CartList(APIView):
     @swagger_auto_schema(
         operation_summary="Удаление всех товаров в корзине",
         responses={204: CartSerializer(many=True), 500: "Серверная ошибка"},
-        manual_parameters=[
-            openapi.Parameter(
-                name="name",
-                in_=openapi.IN_QUERY,
-                required=True,
-                type=openapi.TYPE_STRING,
-            )
-        ],
     )
     def delete(self, request, format=None):
         carts = Cart.objects.all()
@@ -67,22 +47,15 @@ class CartList(APIView):
 
 
 class CartDetail(APIView):
+    permission_classes = (IsAuthenticated,)
 
     @swagger_auto_schema(
         operation_summary="Получение информации о конкретном товаре",
         responses={200: CartSerializer(many=True), 500: "Серверная ошибка"},
-        manual_parameters=[
-            openapi.Parameter(
-                name="name",
-                in_=openapi.IN_QUERY,
-                required=True,
-                type=openapi.TYPE_STRING,
-            )
-        ],
     )
     def get(self, request, pk, format=None):
         carts = Cart.objects.filter(pk=pk).first()
-        serializer = CartSerializer(carts, many=True)
+        serializer = CartSerializer(carts)
         return Response(serializer.data)
 
     @swagger_auto_schema(
@@ -92,14 +65,7 @@ class CartDetail(APIView):
             400: "Не правильный ввод данных",
             500: "Серверная ошибка",
         },
-        manual_parameters=[
-            openapi.Parameter(
-                name="name",
-                in_=openapi.IN_QUERY,
-                required=True,
-                type=openapi.TYPE_STRING,
-            )
-        ],
+        request_body=CartSerializer
     )
     def put(self, request, pk, format=None):
         product = Cart.objects.filter(pk=pk).first()
@@ -112,14 +78,6 @@ class CartDetail(APIView):
     @swagger_auto_schema(
         operation_summary="Удаление конкретного продукта в корзине",
         responses={204: CartSerializer(many=True), 500: "Серверная ошибка"},
-        manual_parameters=[
-            openapi.Parameter(
-                name="name",
-                in_=openapi.IN_QUERY,
-                required=True,
-                type=openapi.TYPE_STRING,
-            )
-        ],
     )
     def delete(self, request, pk, format=None):
         carts = Cart.objects.filter(pk=pk).first()

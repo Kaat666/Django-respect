@@ -1,24 +1,21 @@
+from django.http import Http404
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from category.models import Category
 from category.serializers import CategorySerializer
 from rest_framework.views import APIView
+from product.models import Product
 
 
 class CategoryList(APIView):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
     @swagger_auto_schema(
         operation_summary="Получение списка всех существующих категорий",
         responses={200: CategorySerializer(many=True), 500: "Серверная ошибка"},
-        manual_parameters=[
-            openapi.Parameter(
-                name="name",
-                in_=openapi.IN_QUERY,
-                required=True,
-                type=openapi.TYPE_STRING,
-            )
-        ],
     )
     def get(self, request, format=None):
         products = Category.objects.all()
@@ -32,37 +29,27 @@ class CategoryList(APIView):
             400: "Не правильный ввод данных",
             500: "Серверная ошибка",
         },
-        manual_parameters=[
-            openapi.Parameter(
-                name="name",
-                in_=openapi.IN_QUERY,
-                required=True,
-                type=openapi.TYPE_STRING,
-            )
-        ],
+        request_body=CategorySerializer
     )
     def post(self, request, format=None):
-        serializer = CategorySerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if request.user.is_superuser:
+            serializer = CategorySerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            raise Http404
 
 
 class CategoriesProduct(APIView):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
     @swagger_auto_schema(
         operation_summary="Получение всех товаров находящихся в определенной категории",
         responses={200: CategorySerializer(many=True), 500: "Серверная ошибка"},
-        manual_parameters=[
-            openapi.Parameter(
-                name="name",
-                in_=openapi.IN_QUERY,
-                required=True,
-                type=openapi.TYPE_STRING,
-            )
-        ],
     )
     def get(self, request, category_id, format=None):
-        products = Category.objects.filter(category_id=category_id)
+        products = Product.objects.filter(category_id=category_id)
         serializer = CategorySerializer(products, many=True)
         return Response(serializer.data)
