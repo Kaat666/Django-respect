@@ -9,14 +9,14 @@ from product.serializers import ProductSerializer
 from rest_framework.views import APIView
 
 
-class ProductList(APIView):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+class ProductView(APIView):
+    permission_classes = ()
 
     @swagger_auto_schema(
         operation_summary="Получение всех продуктов",
         responses={200: ProductSerializer(many=True), 500: "Серверная ошибка"},
     )
-    def get(self, request, format=None):
+    def get(self, request):
         products = Product.objects.all()
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
@@ -30,11 +30,13 @@ class ProductList(APIView):
         },
         request_body=ProductSerializer
     )
-    def post(self, request, format=None):
+    def post(self, request):
         if request.user.is_superuser:
             serializer = ProductSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
+                products = Product.objects.all()
+                serializer = ProductSerializer(products, many=True)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
@@ -48,7 +50,7 @@ class ProductDetail(APIView):
         operation_summary="Получение информации о конретном продукте",
         responses={200: ProductSerializer(many=True), 500: "Серверная ошибка"},
     )
-    def get(self, request, pk, format=None):
+    def get(self, request, pk):
         products = Product.objects.filter(pk=pk).first()
         serializer = ProductSerializer(products)
         return Response(serializer.data)

@@ -10,14 +10,14 @@ from rest_framework.views import APIView
 from product.models import Product
 
 
-class CategoryList(APIView):
+class CategoryView(APIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
     @swagger_auto_schema(
         operation_summary="Получение списка всех существующих категорий",
         responses={200: CategorySerializer(many=True), 500: "Серверная ошибка"},
     )
-    def get(self, request, format=None):
+    def get(self, request):
         products = Category.objects.all()
         serializer = CategorySerializer(products, many=True)
         return Response(serializer.data)
@@ -25,13 +25,13 @@ class CategoryList(APIView):
     @swagger_auto_schema(
         operation_summary="Добавление новой категории",
         responses={
-            201: CategorySerializer(many=True),
+            201: CategorySerializer,
             400: "Не правильный ввод данных",
             500: "Серверная ошибка",
         },
         request_body=CategorySerializer
     )
-    def post(self, request, format=None):
+    def post(self, request):
         if request.user.is_superuser:
             serializer = CategorySerializer(data=request.data)
             if serializer.is_valid():
@@ -49,7 +49,7 @@ class CategoriesProduct(APIView):
         operation_summary="Получение всех товаров находящихся в определенной категории",
         responses={200: CategorySerializer(many=True), 500: "Серверная ошибка"},
     )
-    def get(self, request, category_id, format=None):
+    def get(self, request, category_id):
         products = Product.objects.filter(category_id=category_id)
         serializer = CategorySerializer(products, many=True)
         return Response(serializer.data)

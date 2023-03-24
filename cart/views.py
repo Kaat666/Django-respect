@@ -7,42 +7,48 @@ from cart.models import Cart
 from cart.serializers import CartSerializer
 from rest_framework.views import APIView
 
+from product.models import Product
 
-class CartList(APIView):
+
+class CartView(APIView):
     permission_classes = (IsAuthenticated,)
 
     @swagger_auto_schema(
         operation_summary="Добавление продукта в корзину",
         responses={
-            201: CartSerializer(many=True),
+            201: CartSerializer,
             400: "Не правильный ввод данных",
             500: "Серверная ошибка",
         },
         request_body=CartSerializer
     )
-    def post(self, request, format=None):
-        serializer = CartSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request):
+        cart = Cart(
+            products=Product.objects.filter(pk=request.data.get("products")).first(),
+            quantity=request.data.get("quantity"),
+            price=request.data.get("price"),
+            user_id=request.user.id
+        )
+        cart.save()
+        serializer = CartSerializer(cart)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(
         operation_summary="Получение списка всех товаров в корзине",
         responses={200: CartSerializer(many=True), 500: "Серверная ошибка"},
     )
-    def get(self, request, format=None):
-        carts = Cart.objects.all()
-        serializer = CartSerializer(carts, many=True)
+    def get(self, request):
+        cart = Cart.objects.filter(user_id=request.user.id).all()
+        serializer = CartSerializer(cart, many=True)
         return Response(serializer.data)
 
     @swagger_auto_schema(
         operation_summary="Удаление всех товаров в корзине",
         responses={204: CartSerializer(many=True), 500: "Серверная ошибка"},
     )
-    def delete(self, request, format=None):
-        carts = Cart.objects.all()
-        carts.delete()
+    def delete(self, request):
+        cart = Cart.objects.filter(user_id=request.user.id).all()
+        cart.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -53,8 +59,8 @@ class CartDetail(APIView):
         operation_summary="Получение информации о конкретном товаре",
         responses={200: CartSerializer(many=True), 500: "Серверная ошибка"},
     )
-    def get(self, request, pk, format=None):
-        carts = Cart.objects.filter(pk=pk).first()
+    def get(self, request, pk):
+        carts = Cart.objects.filter(pk=pk, user_id=request.user.id).first()
         serializer = CartSerializer(carts)
         return Response(serializer.data)
 
@@ -67,8 +73,8 @@ class CartDetail(APIView):
         },
         request_body=CartSerializer
     )
-    def put(self, request, pk, format=None):
-        product = Cart.objects.filter(pk=pk).first()
+    def put(self, request, pk):
+        product = Cart.objects.filter(pk=pk, user_id=request.user.id).first()
         serializer = CartSerializer(product, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -79,7 +85,7 @@ class CartDetail(APIView):
         operation_summary="Удаление конкретного продукта в корзине",
         responses={204: CartSerializer(many=True), 500: "Серверная ошибка"},
     )
-    def delete(self, request, pk, format=None):
-        carts = Cart.objects.filter(pk=pk).first()
+    def delete(self, request, pk):
+        carts = Cart.objects.filter(pk=pk, user_id=request.user.id).first()
         carts.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
