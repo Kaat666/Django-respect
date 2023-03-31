@@ -1,0 +1,4 @@
+Yandex 1000 5000
+Courier 5000 3500
+SDEK 10000 5500
+My_point 3000 3000 Moscow
