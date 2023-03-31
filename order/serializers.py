@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from order.models import Order
+from order.models import Order, Pvz
 
 
 class OrderResponseSerializer(serializers.ModelSerializer):
@@ -17,4 +17,10 @@ class OrderRequestSerializer(serializers.Serializer):
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
+        fields = '__all__'
+
+
+class PvzSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Pvz
         fields = '__all__'

@@ -4,8 +4,8 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from cart.models import Cart
 #from order.actions import count_price_for_delivery
-from order.models import Order
-from order.serializers import OrderSerializer, OrderRequestSerializer, OrderResponseSerializer
+from order.models import Order, Pvz
+from order.serializers import OrderSerializer, OrderRequestSerializer, OrderResponseSerializer, PvzSerializer
 from rest_framework.views import APIView
 from order.service import *
 
@@ -36,7 +36,7 @@ class OrderView(APIView):
         if cart is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
         delivery = request.data.get('delivery')
-        price = count_price_for_delivery(delivery)
+        price = delivery_factory(delivery)
         order = Order(address=request.data.get("address"),
                       payment_method=request.data.get("payment_method"),
                       price=price,
@@ -62,3 +62,35 @@ class OrderDetail(APIView):
         orders = Order.objects.filter(pk=pk).first()
         serializer = OrderResponseSerializer(orders)
         return Response(serializer.data)
+
+
+class PvzView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @swagger_auto_schema(
+        operation_summary="Получение списка всех заказов",
+        responses={200: PvzSerializer(many=True), 500: "Серверная ошибка"},
+    )
+    def get(self, request):
+        orders = Pvz.objects.all()
+        serializer = PvzSerializer(orders, many=True)
+        return Response(serializer.data)
+
+    @swagger_auto_schema(
+        operation_summary="Оформление заказа",
+        request_body=PvzSerializer,
+        responses={
+            201: PvzSerializer,
+            400: "Не правильный ввод данных",
+            500: "Серверная ошибка",
+        },
+    )
+    def post(self, request):
+        pvz = Pvz(
+            x=request.data.get('x'),
+            y=request.data.get('y'),
+            type=request.data.get('type')
+        )
+        pvz.save()
+        serializer = PvzSerializer(pvz)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
