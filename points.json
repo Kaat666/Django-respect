@@ -1,0 +1,24 @@
+{
+  "points": [
+    {
+      "delivery_type": "Yandex",
+      "x": 1000,
+      "y": 5000
+    },
+    {
+      "delivery_type": "Yandex",
+      "x": 5000,
+      "y": 10000
+    },
+    {
+      "delivery_type": "Courier",
+      "x": 1000,
+      "y": 5000
+    },
+    {
+      "delivery_type": "SDEK",
+      "x": 1000,
+      "y": 5000
+    }
+  ]
+}
